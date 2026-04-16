@@ -1,8 +1,17 @@
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Briefcase, HardHat, Home } from 'lucide-react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Briefcase, HardHat, Home, LogOut, User as UserIcon } from 'lucide-react';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 
 const Layout = () => {
     const location = useLocation();
+    const navigate = useNavigate();
+    const { user, logout } = useContext(AuthContext);
+
+    const handleLogout = () => {
+        logout();
+        navigate('/auth');
+    };
 
     return (
         <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
@@ -26,19 +35,50 @@ const Layout = () => {
                             >
                                 <Home className="w-4 h-4" /> Home
                             </Link>
-                            <Link 
-                                to="/worker" 
-                                className={`flex items-center gap-2 text-sm font-medium transition-colors ${location.pathname === '/worker' ? 'text-brand-DEFAULT' : 'text-slate-600 hover:text-slate-900'}`}
-                            >
-                                <HardHat className="w-4 h-4" /> Worker Panel
-                            </Link>
-                            <div className="h-6 w-[1px] bg-slate-200"></div>
-                            <Link 
-                                to="/employer" 
-                                className={`flex items-center gap-2 text-sm font-medium transition-colors ${location.pathname === '/employer' ? 'text-brand-DEFAULT' : 'text-slate-600 hover:text-slate-900'}`}
-                            >
-                                <Briefcase className="w-4 h-4" /> Employer Panel
-                            </Link>
+
+                            {!user ? (
+                                <Link 
+                                    to="/auth" 
+                                    className="flex items-center gap-2 text-sm font-bold text-brand-DEFAULT bg-brand-light px-4 py-2 rounded-xl hover:bg-brand-DEFAULT hover:text-white transition-colors"
+                                >
+                                    <UserIcon className="w-4 h-4" /> Sign In
+                                </Link>
+                            ) : (
+                                <>
+                                    {user.role === 'worker' && (
+                                        <Link 
+                                            to="/worker" 
+                                            className={`flex items-center gap-2 text-sm font-medium transition-colors ${location.pathname === '/worker' ? 'text-brand-DEFAULT' : 'text-slate-600 hover:text-slate-900'}`}
+                                        >
+                                            <HardHat className="w-4 h-4" /> Dashboard
+                                        </Link>
+                                    )}
+                                    
+                                    {user.role === 'employer' && (
+                                        <Link 
+                                            to="/employer" 
+                                            className={`flex items-center gap-2 text-sm font-medium transition-colors ${location.pathname === '/employer' ? 'text-brand-DEFAULT' : 'text-slate-600 hover:text-slate-900'}`}
+                                        >
+                                            <Briefcase className="w-4 h-4" /> Dashboard
+                                        </Link>
+                                    )}
+
+                                    <div className="h-6 w-[1px] bg-slate-200"></div>
+
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2 text-sm font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+                                            {user.name}
+                                        </div>
+                                        <button 
+                                            onClick={handleLogout}
+                                            className="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50 cursor-pointer"
+                                            title="Logout"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </nav>
                     </div>
                 </div>
