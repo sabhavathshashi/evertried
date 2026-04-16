@@ -1,7 +1,7 @@
 import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, User, Briefcase, HardHat } from 'lucide-react';
+import { Lock, Mail, User, Briefcase, HardHat, Users } from 'lucide-react';
 
 const AuthPage = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -25,6 +25,7 @@ const AuthPage = () => {
                 data = await register(name, email, password, role);
             }
             if (data.role === 'worker') navigate('/worker');
+            else if (data.role === 'coordinator') navigate('/'); // Hackathon Demo: Coordinator UI pending
             else navigate('/employer');
         } catch (err) {
             setError(err.response?.data?.message || 'Authentication failed. Make sure your local Backend server is running!');
@@ -74,14 +75,18 @@ const AuthPage = () => {
                         {!isLogin && (
                             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 delay-75">
                                 <label className="block text-sm font-medium text-slate-700 mb-1.5">I am a...</label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <label className={`flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${role === 'worker' ? 'bg-brand-light border-brand-DEFAULT text-brand-dark font-bold shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <label className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-xl border cursor-pointer transition-all ${role === 'worker' ? 'bg-brand-light border-brand-DEFAULT text-brand-dark font-bold shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
                                         <input type="radio" value="worker" checked={role === 'worker'} onChange={() => setRole('worker')} className="hidden" />
-                                        <HardHat className="w-4 h-4" /> Worker
+                                        <HardHat className="w-4 h-4" /> <span className="text-xs sm:text-sm">Worker</span>
                                     </label>
-                                    <label className={`flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${role === 'employer' ? 'bg-brand-light border-brand-DEFAULT text-brand-dark font-bold shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                                    <label className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-xl border cursor-pointer transition-all ${role === 'employer' ? 'bg-brand-light border-brand-DEFAULT text-brand-dark font-bold shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
                                         <input type="radio" value="employer" checked={role === 'employer'} onChange={() => setRole('employer')} className="hidden" />
-                                        <Briefcase className="w-4 h-4" /> Employer
+                                        <Briefcase className="w-4 h-4" /> <span className="text-xs sm:text-sm">Employer</span>
+                                    </label>
+                                    <label className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-xl border cursor-pointer transition-all ${role === 'coordinator' ? 'bg-brand-light border-brand-DEFAULT text-brand-dark font-bold shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                                        <input type="radio" value="coordinator" checked={role === 'coordinator'} onChange={() => setRole('coordinator')} className="hidden" />
+                                        <Users className="w-4 h-4" /> <span className="text-xs sm:text-sm">Coord.</span>
                                     </label>
                                 </div>
                             </div>
