@@ -29,12 +29,14 @@ const Layout = () => {
                         </Link>
                         
                         <nav className="flex items-center gap-6">
-                            <Link 
-                                to="/" 
-                                className={`flex items-center gap-2 text-sm font-medium transition-colors ${location.pathname === '/' ? 'text-brand-DEFAULT' : 'text-slate-600 hover:text-slate-900'}`}
-                            >
-                                <Home className="w-4 h-4" /> Home
-                            </Link>
+                            {!user && (
+                                <Link 
+                                    to="/" 
+                                    className={`flex items-center gap-2 text-sm font-medium transition-colors ${location.pathname === '/' ? 'text-brand-DEFAULT' : 'text-slate-600 hover:text-slate-900'}`}
+                                >
+                                    <Home className="w-4 h-4" /> Home
+                                </Link>
+                            )}
 
                             {!user ? (
                                 <Link 

@@ -23,12 +23,30 @@ const ProtectedRoute = ({ children, allowedRole }) => {
     return children;
 };
 
+// Guest Route Component intercepts logged in users and forwards them to active dashboards
+const GuestRoute = ({ children }) => {
+    const { user } = useContext(AuthContext);
+    if (user) {
+        return <Navigate to={`/${user.role}`} replace />;
+    }
+    return children;
+};
+
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route index element={<LandingPage />} />
-        <Route path="auth" element={<AuthPage />} />
+        <Route index element={
+            <GuestRoute>
+                <LandingPage />
+            </GuestRoute>
+        } />
+        
+        <Route path="auth" element={
+            <GuestRoute>
+                <AuthPage />
+            </GuestRoute>
+        } />
         
         {/* Protected Dashboard Routes */}
         <Route path="worker" element={
