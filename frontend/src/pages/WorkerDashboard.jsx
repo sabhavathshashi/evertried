@@ -22,10 +22,21 @@ const WorkerDashboard = () => {
         setSkills(skills.filter((_, idx) => idx !== indexToRemove));
     };
 
-    const suggestedJobs = [
-        { title: 'Commercial Pipe Fitting', location: '1.2 km away', employer: 'Kiran T.', match: '98%', status: 'New' },
-        { title: 'Fix Leaky Sink', location: '3.4 km away', employer: 'Rahul M.', match: '85%', status: 'Active' },
-    ];
+    const [jobs, setJobs] = useState([
+        { id: 1, title: 'Commercial Pipe Fitting', location: '1.2 km away', employer: 'Kiran T.', match: '98%', status: 'New', actionState: null },
+        { id: 2, title: 'Fix Leaky Sink', location: '3.4 km away', employer: 'Rahul M.', match: '85%', status: 'Active', actionState: null },
+    ]);
+
+    const handleAccept = (id) => {
+        setJobs(jobs.map(job => job.id === id ? { ...job, actionState: 'accepted' } : job));
+        setTimeout(() => {
+            setJobs(prev => prev.filter(job => job.id !== id));
+        }, 1500);
+    };
+
+    const handleDecline = (id) => {
+        setJobs(jobs.filter(job => job.id !== id));
+    };
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
@@ -111,8 +122,13 @@ const WorkerDashboard = () => {
                     </div>
 
                     <div className="grid gap-4">
-                        {suggestedJobs.map((job, idx) => (
-                            <div key={idx} className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+                        {jobs.length === 0 && (
+                            <div className="bg-white border text-center border-slate-200 p-8 rounded-2xl shadow-sm text-slate-500">
+                                You have processed all nearby jobs! Agent is scanning for more...
+                            </div>
+                        )}
+                        {jobs.map((job) => (
+                            <div key={job.id} className={`bg-white border border-slate-200 p-6 rounded-2xl shadow-sm transform transition-all duration-300 ${job.actionState === 'accepted' ? 'scale-[1.02] border-green-500 shadow-xl shadow-green-100 z-10' : 'hover:shadow-md cursor-pointer group'}`}>
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
@@ -132,12 +148,20 @@ const WorkerDashboard = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-                                    <button className="flex-1 bg-brand-DEFAULT text-white py-2.5 rounded-xl font-medium hover:bg-brand-dark transition-colors cursor-pointer flex items-center justify-center gap-2">
-                                        <CheckCircle className="w-4 h-4" /> Accept Job
-                                    </button>
-                                    <button className="px-4 py-2.5 text-slate-500 hover:bg-slate-100 rounded-xl font-medium transition-colors cursor-pointer">
-                                        Decline
-                                    </button>
+                                    {job.actionState === 'accepted' ? (
+                                        <div className="flex-1 bg-green-50 text-green-600 border border-green-200 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 animate-pulse">
+                                            <CheckCircle className="w-5 h-5 text-green-500" /> Job Accepted!
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <button onClick={() => handleAccept(job.id)} className="flex-1 bg-brand-DEFAULT text-white py-2.5 rounded-xl font-medium hover:bg-brand-dark transition-colors cursor-pointer flex items-center justify-center gap-2 active:scale-95">
+                                                <CheckCircle className="w-4 h-4" /> Accept Job
+                                            </button>
+                                            <button onClick={() => handleDecline(job.id)} className="px-5 py-2.5 bg-white text-slate-500 hover:bg-slate-100 hover:text-red-600 hover:border-red-200 rounded-xl font-medium border border-slate-200 transition-colors cursor-pointer active:scale-95">
+                                                Decline
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         ))}
