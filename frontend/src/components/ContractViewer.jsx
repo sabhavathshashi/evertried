@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import { FileText, CheckCircle, ShieldCheck, Download, AlertCircle } from 'lucide-react';
+import { FileText, CheckCircle, ShieldCheck } from 'lucide-react';
 
 const ContractViewer = ({ contractId, onClose }) => {
     const { user } = useContext(AuthContext);
@@ -41,8 +41,12 @@ const ContractViewer = ({ contractId, onClose }) => {
         setSigning(false);
     };
 
-    if (loading) return <div className="p-8 text-center"><div className="w-8 h-8 rounded-full border-4 border-brand-DEFAULT border-t-transparent animate-spin mx-auto"></div></div>;
-    
+    if (loading) return (
+        <div className="p-8 text-center">
+            <div className="w-8 h-8 rounded-full border-4 border-brand-DEFAULT border-t-transparent animate-spin mx-auto"></div>
+        </div>
+    );
+
     if (!contract) return null;
 
     const isWorker = user.role === 'worker';
@@ -52,23 +56,29 @@ const ContractViewer = ({ contractId, onClose }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
             <div className="bg-white max-w-2xl w-full rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                
+
                 {/* Header */}
                 <div className="bg-slate-50 border-b border-slate-200 p-6 flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-brand-light text-brand-dark flex items-center justify-center rounded-xl"><FileText className="w-5 h-5"/></div>
+                        <div className="w-10 h-10 bg-brand-light text-brand-dark flex items-center justify-center rounded-xl">
+                            <FileText className="w-5 h-5"/>
+                        </div>
                         <div>
                             <h2 className="font-black text-lg text-slate-900 leading-tight">Digital Work Contract</h2>
                             <p className="text-xs text-slate-500 font-mono tracking-wider">ID: {contract.uniqueContractId}</p>
                         </div>
                     </div>
-                    {onClose && <button onClick={onClose} className="w-8 h-8 bg-slate-200 hover:bg-slate-300 rounded-full flex items-center justify-center text-slate-600 transition-colors font-bold">&times;</button>}
+                    {onClose && (
+                        <button onClick={onClose} className="w-8 h-8 bg-slate-200 hover:bg-slate-300 rounded-full flex items-center justify-center text-slate-600 transition-colors font-bold">
+                            &times;
+                        </button>
+                    )}
                 </div>
 
                 {/* Content */}
                 <div className="p-8 overflow-y-auto flex-1 font-serif text-slate-800">
                     <div className="border-2 border-slate-900 p-8 rounded-lg relative bg-amber-50/10">
-                        
+
                         <div className="text-center mb-8">
                             <h3 className="text-2xl font-bold uppercase tracking-widest border-b border-slate-900 pb-4 inline-block px-12">Service Agreement</h3>
                         </div>
@@ -96,8 +106,8 @@ const ContractViewer = ({ contractId, onClose }) => {
                                 <div className="border-b border-slate-400 pb-2 mb-2 min-h-[60px] flex flex-col justify-end items-center">
                                     {contract.employerSignature ? (
                                         <div className="text-green-600 flex flex-col items-center gap-1">
-                                            <span className="font-serif italic text-2xl opacity-70 border-b border-transparent">{contract.employerName}</span>
-                                            <span className="text-[10px] font-mono bg-green-50 px-2 py-0.5 rounded border border-green-200">Hash: {contract.employerSignature.substring(0,8)}...</span>
+                                            <span className="font-serif italic text-2xl opacity-70">{contract.employerName}</span>
+                                            <span className="text-[10px] font-mono bg-green-50 px-2 py-0.5 rounded border border-green-200">Hash: {contract.employerSignature.substring(0, 8)}...</span>
                                         </div>
                                     ) : (
                                         <span className="text-slate-300 italic">Awaiting Signature</span>
@@ -110,8 +120,8 @@ const ContractViewer = ({ contractId, onClose }) => {
                                 <div className="border-b border-slate-400 pb-2 mb-2 min-h-[60px] flex flex-col justify-end items-center">
                                     {contract.workerSignature ? (
                                         <div className="text-green-600 flex flex-col items-center gap-1">
-                                            <span className="font-serif italic text-2xl opacity-70 border-b border-transparent">{contract.workerName}</span>
-                                            <span className="text-[10px] font-mono bg-green-50 px-2 py-0.5 rounded border border-green-200">Hash: {contract.workerSignature.substring(0,8)}...</span>
+                                            <span className="font-serif italic text-2xl opacity-70">{contract.workerName}</span>
+                                            <span className="text-[10px] font-mono bg-green-50 px-2 py-0.5 rounded border border-green-200">Hash: {contract.workerSignature.substring(0, 8)}...</span>
                                         </div>
                                     ) : (
                                         <span className="text-slate-300 italic">Awaiting Signature</span>
@@ -130,7 +140,7 @@ const ContractViewer = ({ contractId, onClose }) => {
                     </div>
                 </div>
 
-                {/* Footer Actions */}
+                {/* Footer */}
                 <div className="bg-slate-50 border-t border-slate-200 p-6 flex justify-between items-center">
                     <div className="flex items-center gap-2">
                         <ShieldCheck className={`w-5 h-5 ${contract.status === 'accepted' ? 'text-green-500' : 'text-slate-400'}`} />
@@ -139,23 +149,24 @@ const ContractViewer = ({ contractId, onClose }) => {
 
                     <div className="flex gap-3">
                         {!hasSigned ? (
-                            <button 
+                            <button
                                 onClick={handleSign}
                                 disabled={signing}
                                 className="bg-brand-DEFAULT text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-brand-dark transition-all active:scale-95 shadow-md shadow-brand-DEFAULT/20"
                             >
-                                {signing ? <><div className="w-4 h-4 border-2 border-white rounded-full animate-spin border-t-transparent"></div> Signing...</> : <><CheckCircle className="w-5 h-5"/> Sign & Accept Contract</>}
+                                {signing
+                                    ? <><div className="w-4 h-4 border-2 border-white rounded-full animate-spin border-t-transparent"></div> Signing...</>
+                                    : <><CheckCircle className="w-5 h-5"/> Sign & Accept Contract</>
+                                }
                             </button>
                         ) : (
                             <button disabled className="bg-green-50 text-green-700 border border-green-200 px-6 py-3 rounded-xl font-bold flex items-center gap-2">
                                 <CheckCircle className="w-4 h-4"/> You Signed This
                             </button>
                         )}
-                        <button className="bg-slate-200 text-slate-700 hover:bg-slate-300 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all">
-                            <Download className="w-4 h-4"/> PDF
-                        </button>
                     </div>
                 </div>
+
             </div>
         </div>
     );

@@ -39,9 +39,13 @@ const jobSchema = mongoose.Schema({
             required: true
         }
     },
+    filledSlots: {
+        type: Number,
+        default: 0
+    },
     status: {
         type: String,
-        enum: ['open', 'in-progress', 'completed', 'cancelled'],
+        enum: ['open', 'partially-filled', 'in-progress', 'completed', 'cancelled'],
         default: 'open'
     },
     applicants: [{

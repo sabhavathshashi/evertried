@@ -52,9 +52,28 @@ io.on('connection', (socket) => {
     // Accept or decline job
     socket.on('job_apply', async (data) => {
         try {
+            // Fetch job first to check slot availability and prevent duplicates
+            const job = await Job.findById(data.jobId);
+            if (!job) return;
+
+            // ── Duplicate prevention: one application per worker per job ──
+            const alreadyApplied = job.applicants.some(
+                a => a.worker.toString() === data.workerId
+            );
+            if (alreadyApplied) {
+                console.log(`Worker ${data.workerId} already applied to job ${data.jobId}`);
+                return; // silently ignore
+            }
+
+            // ── Slot check: don't accept new applications if all slots filled ──
+            if (job.filledSlots >= job.workerCount) {
+                console.log(`Job ${data.jobId} is full (${job.filledSlots}/${job.workerCount})`);
+                return;
+            }
+
             // 1. Add applicant to DB safely
             await Job.findByIdAndUpdate(data.jobId, {
-                $addToSet: { applicants: { worker: data.workerId, status: 'applied' } }
+                $push: { applicants: { worker: data.workerId, status: 'applied' } }
             });
 
             // 2. Transmit comprehensive worker data to Employer
@@ -67,7 +86,7 @@ io.on('connection', (socket) => {
                     workerId: worker._id,
                     name: worker.name,
                     rating: worker.rating,
-                    distance: '1.2 km', // Native distance calc pending via GeoJSON
+                    distance: '1.2 km',
                     skills: worker.skills
                 });
             }
@@ -78,27 +97,31 @@ io.on('connection', (socket) => {
 
     socket.on('job_select', async (data) => {
         try {
-            // Update Applicant status specifically
+            // Update this specific applicant's status
             await Job.updateOne(
                 { _id: data.jobId, "applicants.worker": data.workerId },
                 { $set: { "applicants.$.status": data.status } }
             );
 
-            // Fetch the updated job conditionally to process total hired capacity
+            // Recompute filledSlots from scratch (source of truth)
             const activeJobObj = await Job.findById(data.jobId);
             if (activeJobObj) {
-                 const hiredCount = activeJobObj.applicants.filter(a => a.status === 'hired').length;
-                 if (hiredCount >= activeJobObj.workerCount) {
-                     activeJobObj.status = 'in-progress';
-                     await activeJobObj.save();
-                 } else if (activeJobObj.status === 'in-progress' && data.status !== 'hired') {
-                     // Re-open job if employer rejects an already hired worker causing drops below capacity
-                     activeJobObj.status = 'open';
-                     await activeJobObj.save();
-                 }
+                const filledSlots = activeJobObj.applicants.filter(a => a.status === 'hired').length;
+                activeJobObj.filledSlots = filledSlots;
+
+                // Derive job status from slot fill level
+                if (filledSlots >= activeJobObj.workerCount) {
+                    activeJobObj.status = 'in-progress'; // All slots filled
+                } else if (filledSlots > 0) {
+                    activeJobObj.status = 'partially-filled'; // Some slots filled
+                } else {
+                    activeJobObj.status = 'open'; // No one hired yet
+                }
+
+                await activeJobObj.save();
             }
 
-            // Notify worker instantly
+            // Notify the specific worker
             const workerSocket = connectedUsers.get(data.workerId);
             if (workerSocket) {
                 io.to(workerSocket).emit('job_confirmation', data);

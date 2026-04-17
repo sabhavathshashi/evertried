@@ -328,7 +328,13 @@ const WorkerDashboard = () => {
                                 <p className="text-slate-500 max-w-sm mx-auto mt-2">New jobs will instantly appear here when employers post them nearby.</p>
                             </div>
                         )}
-                        {jobs.map((job) => (
+                        {jobs.map((job) => {
+                            const totalSlots = job.workerCount ?? 1;
+                            const filledSlots = job.filledSlots ?? 0;
+                            const openSlots = Math.max(0, totalSlots - filledSlots);
+                            const isFull = job.status === 'in-progress' || openSlots === 0;
+
+                            return (
                             <div key={job.id} className={`bg-white border border-slate-200 p-6 rounded-2xl shadow-sm transform transition-all duration-300 ${job.status === 'Hired!' ? 'scale-[1.02] border-green-500 shadow-xl shadow-green-100 z-10' : 'hover:shadow-md cursor-pointer group'}`}>
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
@@ -337,6 +343,18 @@ const WorkerDashboard = () => {
                                             <span className="text-slate-600 text-xs font-bold flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                                                 <MapPin className="w-3.5 h-3.5 text-brand-DEFAULT" /> {job.location && typeof job.location === 'string' ? job.location : 'Nearby'}
                                             </span>
+                                            {/* Slot availability badge */}
+                                            {totalSlots > 1 && (
+                                                isFull ? (
+                                                    <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                                                        All positions filled
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs font-bold text-brand-dark bg-brand-light px-2 py-0.5 rounded-full">
+                                                        {openSlots} of {totalSlots} positions open
+                                                    </span>
+                                                )
+                                            )}
                                         </div>
                                         <h3 className="font-bold text-xl text-slate-900 group-hover:text-brand-DEFAULT transition-colors">{job.title}</h3>
                                         <div className="flex items-center gap-2 mt-2">
@@ -360,6 +378,10 @@ const WorkerDashboard = () => {
                                         <div className="flex-1 bg-slate-50 text-brand-DEFAULT border border-slate-200 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-inner">
                                             <Search className="w-4 h-4 animate-spin" /> Application Sent. Awaiting Employer Response...
                                         </div>
+                                    ) : isFull ? (
+                                        <div className="flex-1 bg-slate-50 text-slate-400 border border-slate-200 py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                                            All positions filled — no openings
+                                        </div>
                                     ) : (
                                         <>
                                             <button onClick={() => handleApply(job.id, job.employerId || job.employer)} className="flex-1 bg-brand-DEFAULT text-white py-3 rounded-xl font-bold hover:bg-brand-dark transition-colors cursor-pointer flex items-center justify-center gap-2 active:scale-95 shadow-md shadow-brand-DEFAULT/20 text-sm">
@@ -372,7 +394,8 @@ const WorkerDashboard = () => {
                                     )}
                                 </div>
                             </div>
-                        ))}
+                        )})}
+
                     </div>
                 </div>
             </div>

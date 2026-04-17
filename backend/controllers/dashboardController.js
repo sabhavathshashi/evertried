@@ -54,26 +54,31 @@ const getEmployerDashboard = async (req, res) => {
         const userId = req.user._id;
         
         const myJobs = await Job.find({ employer: userId }).populate('applicants.worker', 'name rating skills');
-        const activeJobs = myJobs.filter(j => j.status === 'open' || j.status === 'in-progress');
+        const activeJobs = myJobs
+            .filter(j => ['open', 'partially-filled', 'in-progress'].includes(j.status))
+            .map(job => {
+                // Recalculate filledSlots live from applicants array (source of truth)
+                const filledSlots = job.applicants.filter(a => a.status === 'hired').length;
+                return {
+                    ...job.toObject(),
+                    totalSlots: job.workerCount,
+                    filledSlots,
+                    openSlots: Math.max(0, job.workerCount - filledSlots)
+                };
+            });
         
         let totalApplications = 0;
         myJobs.forEach(j => { totalApplications += j.applicants.length });
 
-        // Basic hiring insights
         const insights = {
             totalPosted: myJobs.length,
             totalApplications,
             activeNow: activeJobs.length
         };
 
-        // Worker suggestions (Simple: finding workers with similar general traits or top rated)
         const suggestions = await User.find({ role: 'worker', rating: { $gte: 4 } }).select('name rating primarySkill').limit(5);
 
-        res.json({
-            activeJobs,
-            insights,
-            suggestions
-        });
+        res.json({ activeJobs, insights, suggestions });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error fetching employer dashboard' });

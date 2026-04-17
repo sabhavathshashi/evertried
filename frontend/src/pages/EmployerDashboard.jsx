@@ -208,11 +208,49 @@ const EmployerDashboard = () => {
                                 <AlertCircle className="w-10 h-10 text-slate-400 mx-auto mb-3" />
                                 <p className="text-slate-500 font-bold">You don't have any active jobs yet.</p>
                             </div>
-                        ) : data.activeJobs?.map(job => (
+                        ) : data.activeJobs?.map(job => {
+                            const totalSlots = job.totalSlots ?? job.workerCount ?? 1;
+                            const filledSlots = job.filledSlots ?? 0;
+                            const openSlots = job.openSlots ?? Math.max(0, totalSlots - filledSlots);
+                            const allFilled = filledSlots >= totalSlots;
+                            const fillPct = Math.round((filledSlots / totalSlots) * 100);
+
+                            const statusColor = {
+                                'open': 'bg-brand-light text-brand-dark',
+                                'partially-filled': 'bg-amber-50 text-amber-700',
+                                'in-progress': 'bg-green-50 text-green-700',
+                            }[job.status] ?? 'bg-slate-100 text-slate-600';
+
+                            return (
                             <div key={job._id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden text-sm">
-                                <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                                    <h3 className="font-black text-lg text-slate-800">{job.title} <span className="font-medium text-brand-dark ml-2">₹{job.pay}/day</span></h3>
-                                    <span className="bg-brand-light text-brand-dark px-3 py-1 rounded-full text-xs font-bold uppercase">{job.status}</span>
+                                <div className="bg-slate-50 px-6 py-4 border-b border-slate-100">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <h3 className="font-black text-lg text-slate-800">{job.title} <span className="font-medium text-brand-dark ml-2">₹{job.pay}/day</span></h3>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${statusColor}`}>{job.status}</span>
+                                    </div>
+
+                                    {/* Slot progress bar */}
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
+                                            <div
+                                                className={`h-2 rounded-full transition-all duration-500 ${allFilled ? 'bg-green-500' : 'bg-brand-DEFAULT'}`}
+                                                style={{ width: `${fillPct}%` }}
+                                            />
+                                        </div>
+                                        <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
+                                            {filledSlots} / {totalSlots} slots filled
+                                        </span>
+                                        {!allFilled && (
+                                            <span className="text-xs font-bold text-brand-dark bg-brand-light px-2 py-0.5 rounded-full whitespace-nowrap">
+                                                {openSlots} open
+                                            </span>
+                                        )}
+                                        {allFilled && (
+                                            <span className="text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                                ✓ Full
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                                 
                                 <div className="p-0">
@@ -225,20 +263,33 @@ const EmployerDashboard = () => {
                                                     <div>
                                                         <p className="font-bold text-slate-900 text-base">{app.worker?.name || 'Unknown Worker'}</p>
                                                         <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                                                            <span className="font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded">{app.worker?.rating || 0} ⭐ Rating</span> 
+                                                            <span className="font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded">{app.worker?.rating || 0} ⭐ Rating</span>
                                                             {app.worker?.skills && <span>• {app.worker.skills.length} skills listed</span>}
                                                         </p>
                                                     </div>
                                                     
                                                     {app.status === 'applied' ? (
-                                                        <div className="flex gap-2">
-                                                            <button onClick={() => handleSelectWorker(job._id, app.worker?._id, 'hired')} className="bg-green-500 text-white p-2 px-4 rounded-xl font-bold flex items-center gap-1 hover:bg-green-600 shadow-sm shadow-green-200 active:scale-95 transition-all">
-                                                                <CheckCircle className="w-4 h-4"/> Hire
-                                                            </button>
-                                                            <button onClick={() => handleSelectWorker(job._id, app.worker?._id, 'rejected')} className="bg-white border-2 border-slate-200 text-slate-400 p-2 px-4 rounded-xl font-bold flex items-center gap-1 hover:bg-red-50 hover:text-red-500 hover:border-red-200 active:scale-95 transition-all">
-                                                                <XCircle className="w-4 h-4"/> Reject
-                                                            </button>
-                                                        </div>
+                                                        allFilled ? (
+                                                            // All slots taken — can't hire more
+                                                            <span className="text-xs text-slate-400 font-bold italic px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200">
+                                                                All slots filled
+                                                            </span>
+                                                        ) : (
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() => handleSelectWorker(job._id, app.worker?._id, 'hired')}
+                                                                    className="bg-green-500 text-white p-2 px-4 rounded-xl font-bold flex items-center gap-1 hover:bg-green-600 shadow-sm shadow-green-200 active:scale-95 transition-all"
+                                                                >
+                                                                    <CheckCircle className="w-4 h-4"/> Hire
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleSelectWorker(job._id, app.worker?._id, 'rejected')}
+                                                                    className="bg-white border-2 border-slate-200 text-slate-400 p-2 px-4 rounded-xl font-bold flex items-center gap-1 hover:bg-red-50 hover:text-red-500 hover:border-red-200 active:scale-95 transition-all"
+                                                                >
+                                                                    <XCircle className="w-4 h-4"/> Reject
+                                                                </button>
+                                                            </div>
+                                                        )
                                                     ) : (
                                                         <span className={`px-4 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider ${app.status === 'hired' ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-500'}`}>
                                                             {app.status}
@@ -250,7 +301,7 @@ const EmployerDashboard = () => {
                                     )}
                                 </div>
                             </div>
-                        ))}
+                        )})}
                     </div>
                 </div>
             </div>
