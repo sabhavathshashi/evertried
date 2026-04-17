@@ -19,6 +19,15 @@ const jobSchema = mongoose.Schema({
         required: true,
         min: 1
     },
+    jobType: {
+        type: String,
+        enum: ['Small', 'Large'],
+        default: 'Small'
+    },
+    pay: {
+        type: Number,
+        default: 500
+    },
     location: {
         type: {
             type: String,
@@ -34,7 +43,11 @@ const jobSchema = mongoose.Schema({
         type: String,
         enum: ['open', 'in-progress', 'completed', 'cancelled'],
         default: 'open'
-    }
+    },
+    applicants: [{
+        worker: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        status: { type: String, enum: ['applied', 'hired', 'rejected'], default: 'applied' }
+    }]
 }, {
     timestamps: true
 });

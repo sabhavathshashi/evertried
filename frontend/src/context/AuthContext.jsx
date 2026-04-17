@@ -13,18 +13,33 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
-    const login = async (email, password) => {
-        const { data } = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+    const sendOtp = async (email) => {
+        await axios.post(`${API_URL}/api/auth/send-otp`, { email });
+    };
+
+    const verifyOtp = async (email, otp, name, role) => {
+        const { data } = await axios.post(`${API_URL}/api/auth/verify-otp`, { email, otp, name, role });
         localStorage.setItem('user', JSON.stringify(data));
         setUser(data);
         return data;
     };
 
-    const register = async (name, email, password, role) => {
-        const { data } = await axios.post('http://localhost:5000/api/auth/register', { name, email, password, role });
+    const googleAuthLogin = async (name, email, role) => {
+        const { data } = await axios.post(`${API_URL}/api/auth/google`, { name, email, role });
         localStorage.setItem('user', JSON.stringify(data));
         setUser(data);
         return data;
+    };
+
+    const updateProfile = async (profileData) => {
+        const config = { headers: { Authorization: `Bearer ${user.token}` } };
+        const { data } = await axios.put(`${API_URL}/api/user/profile`, profileData, config);
+        const updatedUser = { ...user, ...data };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+        return updatedUser;
     };
 
     const logout = () => {
@@ -33,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout }}>
+        <AuthContext.Provider value={{ user, sendOtp, verifyOtp, googleAuthLogin, updateProfile, logout }}>
             {children}
         </AuthContext.Provider>
     );

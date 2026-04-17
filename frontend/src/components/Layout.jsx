@@ -65,6 +65,13 @@ const Layout = () => {
                                         </Link>
                                     )}
 
+                                    <Link 
+                                        to="/profile" 
+                                        className={`flex items-center gap-2 text-sm font-medium transition-colors ${location.pathname === '/profile' ? 'text-brand-DEFAULT' : 'text-slate-600 hover:text-slate-900'}`}
+                                    >
+                                        <UserIcon className="w-4 h-4" /> Profile
+                                    </Link>
+
                                     <div className="h-6 w-[1px] bg-slate-200"></div>
 
                                     <div className="flex items-center gap-3">
